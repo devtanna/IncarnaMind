@@ -17,7 +17,9 @@ from toolkit.utils import (
     load_pickle,
 )
 from toolkit.retrivers import MyRetriever
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # Load the config file
 configs = Config("configparser.ini")
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 config = configparser.ConfigParser()
 config.read("configparser.ini")
-os.environ["OPENAI_API_KEY"] = configs.openai_api_key
+# os.environ["OPENAI_API_KEY"] = configs.openai_api_key
 os.environ["ANTHROPIC_API_KEY"] = configs.anthropic_api_key
 
 embedding = choose_embeddings(configs.embedding_name)
@@ -118,20 +120,3 @@ if __name__ == "__main__":
         print(f"AI:{resp['answer']}")
         print(f"Time used: {time.time() - start_time}")
         print("-" * 60)
-
-        # async def async_generate(input_str: str):
-        #     resp = await qa.arun(input_str)
-        #     print()
-        #     print(f"AI:{resp}")
-
-        # async def main():
-        #     while True:
-        #         start_time = time.time()
-        #         user_input = input("Human: ")
-        #         print()
-        #         user_input_ = re.sub(r"^Human: ", "", user_input)
-        #         await asyncio.gather(*[async_generate(user_input_)])
-        #         print(f"Time used: {time.time() - start_time}")
-        #         print("-" * 50)
-
-        # asyncio.run(main())

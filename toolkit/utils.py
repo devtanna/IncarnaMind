@@ -3,6 +3,7 @@ The widgets defines utility functions for loading data, text cleaning,
 and indexing documents, as well as classes for handling document queries
 and formatting chat history.
 """
+import os
 import re
 import pickle
 import string
@@ -21,7 +22,9 @@ from langchain.vectorstores import Chroma
 from langchain.schema import Document, BaseMessage
 from langchain.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
+from dotenv import load_dotenv
 
+load_dotenv()
 
 tokenizer_name = tiktoken.encoding_for_model("gpt-3.5-turbo")
 tokenizer = tiktoken.get_encoding(tokenizer_name.name)
@@ -44,7 +47,7 @@ class Config:
         self.config.read(config_file)
 
         # Tokens
-        self.openai_api_key = self.config.get("tokens", "OPENAI_API_KEY")
+        self.openai_api_key = os.getenv('OPENAI_API_KEY') or self.config.get("tokens", "OPENAI_API_KEY")
         self.anthropic_api_key = self.config.get("tokens", "ANTHROPIC_API_KEY")
         self.version = self.config.get("tokens", "VERSION")
 

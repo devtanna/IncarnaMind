@@ -1,0 +1,6 @@
+.python-version
+*.pyc
+__pycache__/
+database_store/
+data/
+*.log

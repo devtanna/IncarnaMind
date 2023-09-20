@@ -23,12 +23,15 @@ from langchain.document_loaders import (
 )
 
 from toolkit.utils import Config, choose_embeddings, clean_text
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # Load the config file
 configs = Config("configparser.ini")
 
-os.environ["OPENAI_API_KEY"] = configs.openai_api_key
+# os.environ["OPENAI_API_KEY"] = configs.openai_api_key
 os.environ["ANTHROPIC_API_KEY"] = configs.anthropic_api_key
 
 embedding_store_path = configs.emb_dir
@@ -291,6 +294,51 @@ def merge_chunks(doc: Document, scale_factor: int, chunk_idx_name: str):
             metadata_list = []
 
     return merged_doc
+
+def ingest_file(file_path):
+    print("Starting to process", file_path)
+    chunks_small = []
+    chunks_medium = []
+    file_names = []
+    
+    doc = load_file(file_path)
+    chunk_split_small = split_doc(
+        doc=doc,
+        chunk_size=configs.base_chunk_size,
+        chunk_overlap=configs.chunk_overlap,
+        chunk_idx_name="small_chunk_idx",
+    )
+    add_window(
+        doc=chunk_split_small,
+        window_steps=configs.window_steps,
+        window_size=configs.window_scale,
+        window_idx_name="large_chunks_idx",
+    )
+
+    chunk_split_medium = merge_chunks(
+        doc=chunk_split_small,
+        scale_factor=configs.chunk_scale,
+        chunk_idx_name="medium_chunk_idx",
+    )
+
+    process_metadata(chunk_split_small)
+    process_metadata(chunk_split_medium)
+
+    file_name_with_extension = os.path.basename(doc[0].metadata["source"])
+    file_names.append(file_name_with_extension)
+    chunks_small.extend(chunk_split_small)
+    chunks_medium.extend(chunk_split_medium)
+
+    
+    file_names2pickle(file_names, save_name="file_names")
+
+    docs2vectorstore(chunks_small, configs.embedding_name, suffix="chunks_small")
+    docs2vectorstore(chunks_medium, configs.embedding_name, suffix="chunks_medium")
+
+    docs2pickle(chunks_small, suffix="chunks_small")
+    docs2pickle(chunks_medium, suffix="chunks_medium")
+
+    print("Done processing file.")
 
 
 def process_files():
