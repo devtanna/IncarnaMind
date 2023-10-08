@@ -108,6 +108,64 @@ qa = ConvoRetrievalChain.from_llm(
     return_generated_question=False,
 )
 
+def reset_qa():
+    print("Resetting QA............................................")
+    # load retrieval database
+    db_embedding_chunks_small = load_embedding(
+        store_name=configs.embedding_name,
+        embedding=embedding,
+        suffix="chunks_small",
+        path=embedding_store_path,
+    )
+    db_embedding_chunks_medium = load_embedding(
+        store_name=configs.embedding_name,
+        embedding=embedding,
+        suffix="chunks_medium",
+        path=embedding_store_path,
+    )
+
+    db_docs_chunks_small = load_pickle(
+        prefix="docs_pickle", suffix="chunks_small", path=embedding_store_path
+    )
+    db_docs_chunks_medium = load_pickle(
+        prefix="docs_pickle", suffix="chunks_medium", path=embedding_store_path
+    )
+    file_names = load_pickle(prefix="file", suffix="names", path=embedding_store_path)
+
+    # Initialize the retriever
+    my_retriever = MyRetriever(
+        llm=models[configs.llm_model],
+        embedding_chunks_small=db_embedding_chunks_small,
+        embedding_chunks_medium=db_embedding_chunks_medium,
+        docs_chunks_small=db_docs_chunks_small,
+        docs_chunks_medium=db_docs_chunks_medium,
+        first_retrieval_k=configs.first_retrieval_k,
+        second_retrieval_k=configs.second_retrieval_k,
+        num_windows=configs.num_windows,
+        retriever_weights=configs.retriever_weights,
+    )
+
+
+    # Initialize the memory
+    memory = ConversationTokenBufferMemory(
+        llm=models[configs.llm_model],
+        memory_key="chat_history",
+        input_key="question",
+        output_key="answer",
+        return_messages=True,
+        max_token_limit=configs.max_chat_history,
+    )
+
+    # Initialize the QA chain
+    return ConvoRetrievalChain.from_llm(
+        models[configs.llm_model],
+        my_retriever,
+        file_names=file_names,
+        memory=memory,
+        return_source_documents=False,
+        return_generated_question=False,
+    )
+
 
 if __name__ == "__main__":
     while True:

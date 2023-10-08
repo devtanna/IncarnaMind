@@ -9,6 +9,7 @@ from multiprocessing import Pool
 from collections import deque
 import hashlib
 import tiktoken
+import nltk
 
 from tqdm import tqdm
 
@@ -45,6 +46,8 @@ loaders = {
     "txt": (TextLoader, {}),
 }
 
+nltk.download('punkt')
+nltk.download('wordnet')
 
 def tiktoken_len(text: str):
     """Calculate the token length of a given text string using TikToken.

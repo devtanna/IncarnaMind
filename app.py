@@ -5,7 +5,11 @@ from docs2db import ingest_file
 
 def answer_question(question): 
     # TODO: ensure file is loaded and processed
-    from main import qa  # TODO: lazy load this
+    # from main import qa  # TODO: lazy load this
+
+    from main import reset_qa
+    qa = reset_qa()
+
     print("Asking", question)
     resp = qa({"question": question})
     return resp['answer']
@@ -32,23 +36,28 @@ with gr.Blocks(css="style.css") as interface:
     with gr.Column(elem_id="col-container"):
         gr.Markdown(
             """
-            # QA your PDF 💬
+            # Ask your PDF anything💬
             """
         )
         with gr.Row(elem_id="row-flex"):
             with gr.Column(scale=1, min_width=50):
                 file_output = gr.File()
                 upload_button = gr.UploadButton(
-                    "Browse File", file_types=[".txt", ".pdf", ".doc", ".docx"]
+                    "Browse File (.pdf)", 
+                    file_types=[".txt", ".pdf", ".doc", ".docx"]
                 )
         user_question = gr.Textbox(value="", label="Ask a question about your file:")
         answer = gr.Textbox(value="", label="Answer:")
         gr.Examples(
-            ["What is the main subject of the file?", "Summarise the file in one sentence"],
+            [
+                "What is the main subject of the file?", 
+                "Summarise the file in one sentence"
+            ],
             user_question,
         )
 
     upload_button.upload(upload_file, upload_button, [file_output])
     user_question.submit(answer_question, [user_question], [answer])
 
-interface.queue().launch()
+if __name__ == "__main__":
+    interface.launch()
