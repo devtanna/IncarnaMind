@@ -59,5 +59,4 @@ with gr.Blocks(css="style.css") as interface:
     upload_button.upload(upload_file, upload_button, [file_output])
     user_question.submit(answer_question, [user_question], [answer])
 
-if __name__ == "__main__":
-    interface.launch()
+interface.launch()
